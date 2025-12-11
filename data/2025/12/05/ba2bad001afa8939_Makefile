@@ -1,0 +1,43 @@
+GO ?= go
+BIN_DIR ?= bin
+SERVER_BIN ?= $(BIN_DIR)/transola-server
+CLI_BIN ?= $(BIN_DIR)/transola
+
+# Server defaults (override at invocation: make run-server HTTP_ADDR=:9090)
+HTTP_ADDR ?= :8080
+DATA_ROOT ?= ./data
+DB_PATH ?= ./transola.db
+JWT_SECRET ?= dev-secret-change-me
+ADMIN_EMAIL ?= admin@example.com
+ADMIN_PASSWORD ?= admin123
+
+.PHONY: build server cli run-server fmt clean
+
+build: server cli
+
+server: $(SERVER_BIN)
+
+cli: $(CLI_BIN)
+
+$(SERVER_BIN):
+	@mkdir -p $(BIN_DIR)
+	$(GO) build -o $(SERVER_BIN) ./cmd/server
+
+$(CLI_BIN):
+	@mkdir -p $(BIN_DIR)
+	$(GO) build -o $(CLI_BIN) ./cmd/cli
+
+run-server: $(SERVER_BIN)
+	TRANSOLA_HTTP_ADDR=$(HTTP_ADDR) \
+	TRANSOLA_DATA_ROOT=$(DATA_ROOT) \
+	TRANSOLA_DB_PATH=$(DB_PATH) \
+	TRANSOLA_JWT_SECRET=$(JWT_SECRET) \
+	TRANSOLA_ADMIN_EMAIL=$(ADMIN_EMAIL) \
+	TRANSOLA_ADMIN_PASSWORD=$(ADMIN_PASSWORD) \
+	$(SERVER_BIN)
+
+fmt:
+	$(GO) fmt ./...
+
+clean:
+	rm -rf $(BIN_DIR)
